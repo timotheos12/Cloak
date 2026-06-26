@@ -1,2 +1,0 @@
-python adversarial_watermark.py photo.jpg protected.png
-python adversarial_watermark.py photo.jpg protected.png --epsilon 12 --steps 300
