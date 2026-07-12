@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-# A windows front-end for adversarial_watermark.py
+# Tkinter GUI front end for adversarial_watermark.py
+# Designed to run without importing torch in frozen exe
+# Build with: py -3.12 -m PyInstaller build_exe.spec
 
 from __future__ import annotations
 
@@ -56,9 +58,9 @@ MODEL_PRESETS = {
 DEFAULT_MODEL = "ViT-B-32"
 DEFAULT_PRETRAINED = MODEL_PRESETS[DEFAULT_MODEL]
 DEFAULT_PROMPT = "watermark"
-FIXED_CONTRAST = "image"
+FIXED_CONTRAST = "image"       # Used to calculate meaningful P(target) percentage
 
-# ---- paths -------------------------------------------------------------------------
+# ---- Paths -------------------------------------------------------------------------
 
 def resource_path(name: str) -> str:
     base = getattr(sys, "_MEIPASS", None)
@@ -74,8 +76,8 @@ def app_data_dir() -> str:
 
 DATA_DIR = app_data_dir()
 PY_DIR = os.path.join(DATA_DIR, "python")
-MARKER = os.path.join(DATA_DIR, "runtime.json")
-LOG_FILE = os.path.join(DATA_DIR, "install.log")
+MARKER = os.path.join(DATA_DIR, "runtime.json")        # Private embedded Python
+LOG_FILE = os.path.join(DATA_DIR, "install.log")       # Records the interpreter
 
 def save_runtime(python_cmd: list[str], version: tuple[int, int] | None = None) -> None:
     with open(MARKER, "w", encoding="utf-8") as fh:
@@ -94,7 +96,7 @@ def load_runtime() -> list[str] | None:
     except Exception:
         return None
 
-# ---- Paths ---------------------------------------------------------------------------
+# ---- Environment and process helpers ---------------------------------------------------------------------------
 
 def _child_env() -> dict:
     env = os.environ.copy()
@@ -138,7 +140,7 @@ def worker_can_import(python_cmd: list[str]) -> bool:
     except Exception:
         return False
 
-# ---- private embedded Python -------------------------------------------------------
+# ---- Private embedded Python -------------------------------------------------------
 
 EMBED_VERSION = "3.12.7"
 EMBED_URLS = {
@@ -146,8 +148,8 @@ EMBED_URLS = {
     "amd64": f"https://www.python.org/ftp/python/{EMBED_VERSION}/python-{EMBED_VERSION}-embed-amd64.zip",
     "win32": f"https://www.python.org/ftp/python/{EMBED_VERSION}/python-{EMBED_VERSION}-embed-win32.zip",
 }
-EMBED_SERIES = f"{PREFERRED_PY[0]}.{PREFERRED_PY[1]}"
-GET_PIP_URL = f"https://bootstrap.pypa.io/pip/{EMBED_SERIES}/get-pip.py"
+EMBED_SERIES = f"{PREFERRED_PY[0]}.{PREFERRED_PY[1]}"         # EG "3.12"
+GET_PIP_URL = f"https://bootstrap.pypa.io/pip/{EMBED_SERIES}/get-pip.py" # Tied to embedded interpreter
 GET_PIP_FALLBACK_URL = "https://bootstrap.pypa.io/get-pip.py"
 
 def _embed_url() -> str:
@@ -199,7 +201,7 @@ def install_embedded_python(emit) -> list[str]:
     except OSError:
         pass
 
-    for name in os.listdir(PY_DIR):
+    for name in os.listdir(PY_DIR): # re-enables site imports
         if name.endswith("._pth"):
             path = os.path.join(PY_DIR, name)
             with open(path, "r", encoding="utf-8") as fh:
@@ -295,7 +297,7 @@ def resolve_python(python_cmd: list[str]) -> list[str]:
         pass
     return python_cmd
 
-# ---- install -----------------------------------------------------------------------
+# ---- Installation -----------------------------------------------------------------------
 
 def host_banner() -> str:
     kind = "frozen exe" if FROZEN else "source"
@@ -346,7 +348,7 @@ def run_install(emit) -> list[str]:
          f"{version[0]}.{version[1]}." if version else "Import check passed.")
     return resolved
 
-# ---- theme --------------------------------------------------------------------------
+# ---- Theme --------------------------------------------------------------------------
 
 ACCENT = "#5ee0c0"
 ACCENT_DIM = "#3aa88f"
@@ -437,12 +439,12 @@ def log_write(widget: tk.Text, line: str) -> None:
     widget.see("end")
     widget.configure(state="disabled")
 
-# ---- setup screen ------------------------------------------------------------------
+# ---- Setup screen ------------------------------------------------------------------
 
 class SetupScreen(ttk.Frame):
     def __init__(self, master, on_ready):
         super().__init__(master, padding=28)
-        self.on_ready = on_ready
+        self.on_ready = on_ready             # Called by resolved python cmd
         self.events: queue.Queue = queue.Queue()
 
         ttk.Label(self, text="Setting up " + APP_NAME, style="Title.TLabel").pack(anchor="w")
@@ -507,7 +509,7 @@ class SetupScreen(ttk.Frame):
             pass
         self.after(60, self._pump)
 
-# ---- main screen -------------------------------------------------------------------
+# ---- Main screen -------------------------------------------------------------------
 
 class ProtectorScreen(ttk.Frame):
     PREVIEW = 300
@@ -544,7 +546,7 @@ class ProtectorScreen(ttk.Frame):
                           f"{version[0]}.{version[1]} is supported.)")
         self.after(80, self._pump)
 
-    def _load_preview(self, path: str):
+    def _load_preview(self, path: str):   # Loads image without importing PIL into GUI
         ext = os.path.splitext(path)[1].lower()
         if ext in (".png", ".gif"):
             try:
@@ -552,7 +554,7 @@ class ProtectorScreen(ttk.Frame):
                 return photo, photo.width(), photo.height()
             except Exception:
                 pass
-        tmp = os.path.join(DATA_DIR, "preview_src.png")
+        tmp = os.path.join(DATA_DIR, "preview_src.png")    # Asks worker.py to transcode to temp PNG
         code = (
             "import sys;from PIL import Image;"
             "im=Image.open(sys.argv[1]).convert('RGB');"
@@ -568,7 +570,7 @@ class ProtectorScreen(ttk.Frame):
 
     def _fit(self, photo: tk.PhotoImage) -> tk.PhotoImage:
         w, h = photo.width(), photo.height()
-        factor = max(1, -(-max(w, h) // (self.PREVIEW - 8)))  # ceil division on the subsample
+        factor = max(1, -(-max(w, h) // (self.PREVIEW - 8)))  # Ceil division on the subsample
         if factor > 1:
             photo = photo.subsample(factor, factor)
         return photo
@@ -710,7 +712,7 @@ class ProtectorScreen(ttk.Frame):
         self.btn_stop = ttk.Button(actions, text="Cancel", command=self.stop, state="disabled")
         self.btn_stop.pack(fill="x", pady=(8, 0))
 
-    # A plain Entry with scroll enabled
+    # A plain entry with scroll enabled
     def _num_entry(self, parent, var, lo, hi, step, integer=False):
         entry = ttk.Entry(parent, textvariable=var, font=UI, justify="left")
 
@@ -725,7 +727,7 @@ class ProtectorScreen(ttk.Frame):
             else:
                 var.set(round(value, 4))
 
-        # Windows sends <MouseWheel> with delta +/-120
+        # Windows sends <MouseWheel> with delta +/-120 and scroll up = increase
         entry.bind("<MouseWheel>", lambda e: (nudge(1 if e.delta > 0 else -1), "break")[1])
         return entry
 
@@ -796,7 +798,7 @@ class ProtectorScreen(ttk.Frame):
             "input": self.source_path,
             "output": os.path.join(DATA_DIR, "protected_result.png"),
             "prompt": prompt,
-            "contrast_prompt": FIXED_CONTRAST,   # internal; drives the P(target) readout
+            "contrast_prompt": FIXED_CONTRAST,   # Drives P(target) readout
             "eps": eps,
             "alpha": alpha,
             "steps": steps,
@@ -970,7 +972,7 @@ class ProtectorScreen(ttk.Frame):
         self.log_line(f"Saved {path}")
         self.status.configure(text=f"Saved to {os.path.basename(path)}", foreground=ACCENT)
 
-# ---- root ------------------------------------------------------------------------------
+# ---- Root ------------------------------------------------------------------------------
 
 class CloakApp(tk.Tk):
     def __init__(self):
