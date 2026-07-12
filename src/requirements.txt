@@ -1,0 +1,7 @@
+open_clip_torch>=2.24.0
+torch>=2.0.0
+torchvision>=0.15.0
+Pillow>=9.0.0
+numpy>=1.23.0
+regex
+ftfy
