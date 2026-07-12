@@ -5,7 +5,7 @@
 # The config carries every setting including the input and output image paths.
 
 """
-Contract (all one-line JSON on stdout, flushed):
+Contract (all one-line JSON on stdout):
     {"t": "log",      "m": str}
     {"t": "progress", "step": int, "total": int, "sim": float}
     {"t": "result",   "output": path, "before": {...}, "after": {...}, "linf": float,
