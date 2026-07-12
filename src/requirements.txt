@@ -1,3 +1,7 @@
+# Dependencies for adversarial_watermark.py
+# Uses Python 3.12, 3.11 or 3.10.
+# Install with: pip install -r requirements.txt
+
 open_clip_torch>=2.24.0
 torch>=2.0.0
 torchvision>=0.15.0
