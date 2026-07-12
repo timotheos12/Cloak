@@ -1,10 +1,9 @@
 # Cloak
-
 Cloak adds subtle noise to images to trick AI models into detecting harmful content like watermarks or blood. When your image is scraped from the internet, this increases the chances that your image will not be used to train AI text-to-image generators. Cloak optimizes L-infinity perturbations using projected gradient ascent to maximize the cosine similarity score between a CLIP embedding and a target embedding.
 
 ## Installation
-1. Download the raw Cloak.exe file.
-2. Double-click the file to launch Cloak.
+1. Download the raw Cloak.exe file from the dist folder.
+2. Double-click the downloaded file to launch Cloak.
 
 ## Usage
 1. Upload your original image.
