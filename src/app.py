@@ -701,7 +701,7 @@ class ProtectorScreen(ttk.Frame):
                       self._num_entry(settings, self.v_alpha, 0.1, 16, 0.1)); r += 1
         self._setting(settings, r, "Seed",
                       self._num_entry(settings, self.v_seed, 0, 999999, 1, integer=True)); r += 1
-        ttk.Label(settings, text="Higher budget is stronger but visible. More steps is stronger but slower. Smaller step size is stronger but requires more steps. Different seeds produce different noise. CPU is slower but CUDA requires Nvidia chips.\n\nCreated by Timothy via Claude.",
+        ttk.Label(settings, text="Higher budget is stronger but visible. More steps is stronger but slower. Smaller step size is stronger but requires more steps. Different seeds produce different noise. CPU is slower but CUDA requires Nvidia chips.\n\nCreated by Timothy.",
                   style="Muted.TLabel", wraplength=310, justify="left").grid(
             row=r, column=0, columnspan=2, sticky="w", pady=(12, 0))
 
