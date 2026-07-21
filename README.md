@@ -20,5 +20,5 @@ Cloak adds subtle noise to images to trick AI models into detecting harmful cont
 4. Download the protected image.
 
 ## Credits
-1. Created by Timothy via Claude.
+1. Created by Timothy.
 2. Cloak uses OpenCLIP, PyTorch, and Pillow.
