@@ -773,8 +773,7 @@ class ProtectorScreen(ttk.Frame):
         self._place(self.canvas_before, self._photo_before)
         self.clear_after()
         self.score_before.configure(text="0.0000", fg=MUTED)
-        self.detail.configure(text=f"{os.path.basename(path)}  \u00b7  {w}\u00d7{h}\n"
-                                   f"Scores will appear after protection is applied.")
+        self.detail.configure(text=f"Scores will appear after protection is applied.")
         self.btn_apply.configure(state="normal")
         self.log_line(f"Loaded {os.path.basename(path)} ({w}x{h})")
 
